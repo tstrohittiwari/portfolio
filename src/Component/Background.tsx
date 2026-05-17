@@ -6,8 +6,8 @@ export default function Background() {
     return (
         <primitive
             object={bg.scene}
-            scale={3}
-            position={[4, -5, 4]}
+            scale={1}
+            position={[0, -6, 4]}
         />
     );
 }

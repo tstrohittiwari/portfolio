@@ -1,13 +1,32 @@
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Environment } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import Figure from "./figure";
+import * as THREE from "three";
+import Figure from "./Figure";
 import Background from "./Background";
+
+// Cinematic Camera Controller
+function CameraRig() {
+    useFrame((state, delta) => {
+        // Parallax camera offset based on mouse
+        const targetX = state.mouse.x * 0.5;
+        const targetY = state.mouse.y * 0.5;
+
+        // Smoothly interpolate camera position
+        state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX, delta * 2.5);
+        state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY, delta * 2.5);
+
+        // Keep the humanoid centered at all times by locking the lookAt
+        // The figure might have its own internal offset, but the composition revolves around the center
+        state.camera.lookAt(0, 0, 0);
+    });
+    return null;
+}
 
 export default function Scene() {
     return (
         <Canvas
-            camera={{ position: [0, 0, 7], fov: 45 }}
+            camera={{ position: [0, 1.5, 6], fov: 45 }}
             style={{
                 width: "100vw",
                 height: "100vh",
@@ -47,12 +66,8 @@ export default function Scene() {
             <Background />
             <Figure />
 
-            {/* Controls */}
-            <OrbitControls
-                enableZoom={false}
-                autoRotate
-                autoRotateSpeed={0.4} // Slower, smoother rotation
-            />
+            {/* Cinematic Camera Constraints */}
+            <CameraRig />
 
             {/* Postprocessing for soft glossy/holographic glow */}
             <EffectComposer>
