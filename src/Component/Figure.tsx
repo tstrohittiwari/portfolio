@@ -29,14 +29,14 @@ export default function Figure() {
         const mesh = child as THREE.Mesh;
         // Apply glossy deep blue glass material
         mesh.material = new THREE.MeshPhysicalMaterial({
-          color: new THREE.Color("#1e1e9c"), // Deep Blue base
-          metalness: 0.6,
+          color: new THREE.Color("#ffffffff"), // Deep Blue base
+          metalness: 1,
           roughness: 0.1,
-          transmission: 0.6, // Glass-like translucency
+          transmission: 1.5, // Glass-like translucency
           thickness: 1,
           envMapIntensity: 2, // Strong reflections
           clearcoat: 1, // Glossy outer layer
-          clearcoatRoughness: 0.1,
+          clearcoatRoughness: 0.5,
         });
       }
     });

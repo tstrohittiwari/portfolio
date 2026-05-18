@@ -9,8 +9,8 @@ import Background from "./Background";
 function CameraRig() {
     useFrame((state, delta) => {
         // Parallax camera offset based on mouse
-        const targetX = state.mouse.x * 0.5;
-        const targetY = state.mouse.y * 0.5;
+        const targetX = state.mouse.x * 0.4;
+        const targetY = state.mouse.y * 0.4;
 
         // Smoothly interpolate camera position
         state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX, delta * 2.5);
@@ -31,22 +31,22 @@ export default function Scene() {
                 width: "100vw",
                 height: "100vh",
                 // A beautiful CSS gradient to match the original image
-                background: "linear-gradient(135deg, #d3b3e6 0%, #a3c4f2 50%, #f0c3e1 100%)"
+               // background: "linear-gradient(135deg, #eae7ffff 0%, #e6f1ffff 50%, #ffe7f7ff 100%)"
             }}
         >
             <Environment preset="city" environmentIntensity={0.8} />
 
             {/* Ambient Lighting */}
-            <ambientLight intensity={1.2} color="#ffffff" />
+            <ambientLight intensity={1.2} color="#ffffffff" />
 
             {/* Main Key Light */}
-            <directionalLight position={[2, 5, 4]} intensity={1.5} color="#ffffff" />
+            <directionalLight position={[2, 5, 4]} intensity={1.5} color="#ffffffff" />
 
             {/* Blue fill light to enhance the figure's blue tint */}
             <spotLight
                 position={[-4, 2, 4]}
                 intensity={5}
-                color="#4f46e5"
+                color="#ffffffff"
                 angle={0.8}
                 penumbra={1}
                 distance={20}
@@ -56,7 +56,7 @@ export default function Scene() {
             <spotLight
                 position={[5, 2, -4]}
                 intensity={8}
-                color="#1e1b4b"
+                color="#ffebebff"
                 angle={0.6}
                 penumbra={1}
                 distance={20}
@@ -70,13 +70,13 @@ export default function Scene() {
             <CameraRig />
 
             {/* Postprocessing for soft glossy/holographic glow */}
-            <EffectComposer>
+            {/* <EffectComposer>
                 <Bloom
                     luminanceThreshold={0.8}
                     mipmapBlur
                     intensity={0.6}
                 />
-            </EffectComposer>
+            </EffectComposer> */}
         </Canvas>
     );
 }
