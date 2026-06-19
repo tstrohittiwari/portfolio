@@ -175,3 +175,74 @@ html, body, #root {
     inset 0 -1px 0 rgba(255, 255, 255, 0.15),
     inset 0 0 10px 4px rgba(255, 255, 255, 0.15);
 }
+
+/* ─── Mobile bar (hidden on desktop) ───────────────────── */
+.hero-mobile-bar {
+  display: none;
+}
+
+/* ─── Mobile Responsive (≤ 767px) ──────────────────────── */
+@media (max-width: 767px) {
+
+  /* Hide all desktop-only UI elements */
+  .hero-socials,
+  .hero-resume,
+  .hero-description {
+    display: none;
+  }
+
+  /* Show the mobile single-row bar */
+  .hero-mobile-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    position: absolute;
+    bottom: 3%;
+    left: 24px;
+    right: 24px;
+    pointer-events: all;
+  }
+
+  /* Icon buttons — fixed square so they stay perfectly circular */
+  .hero-mobile-bar .glass-card-btn {
+    flex: 0 0 52px;       /* never grow or shrink, always 52px wide */
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;   /* perfect circle */
+  }
+
+  /* Resume pill — fills all remaining space */
+  .hero-mobile-bar .resume-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0 12px;
+    height: 52px;
+    font-size: 13px;
+    gap: 6px;
+    border-radius: 100px;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Disable hover lift on touch devices (no real hover) */
+@media (hover: none) {
+  .glass-card-btn:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.13);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 0 6px 3px rgba(255, 255, 255, 0.3);
+  }
+  .resume-btn:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 0 8px 2px rgba(255, 255, 255, 0.12);
+  }
+}
