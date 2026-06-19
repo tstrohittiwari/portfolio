@@ -5,13 +5,26 @@ import * as THREE from "three";
 import Figure from "./Figure";
 import Background from "./Background";
 
+// Global mouse tracker — updated from window events so it stays accurate
+// even when the pointer is over HTML overlay elements (which swallow canvas events).
+const globalMouse = { x: 0, y: 0 };
+if (typeof window !== "undefined") {
+    window.addEventListener("mousemove", (e) => {
+        // Normalise to -1..1 matching R3F's state.mouse convention
+        globalMouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        globalMouse.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    }, { passive: true });
+}
+
 function CameraRig() {
-    useFrame((state, delta) => {
-        const targetX = state.mouse.x * 0.4;
-        const targetY = state.mouse.y * 0.4;
-        state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX, delta * 2.5);
-        state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY, delta * 2.5);
-        state.camera.lookAt(0, 0, 0);
+    useFrame((_, delta) => {
+        const targetX = globalMouse.x * 0.4;
+        const targetY = globalMouse.y * 0.4;
+        // Access camera via the state arg from useFrame
+        const cam = _.camera;
+        cam.position.x = THREE.MathUtils.lerp(cam.position.x, targetX, delta * 2.5);
+        cam.position.y = THREE.MathUtils.lerp(cam.position.y, targetY, delta * 2.5);
+        cam.lookAt(0, 0, 0);
     });
     return null;
 }
@@ -40,12 +53,12 @@ function HeroUI() {
     // Current lerp'd offset (mutable, not state)
     const offset = useRef({ x: 0, y: 0 });
 
-    useFrame((state, delta) => {
+    useFrame((_, delta) => {
         // Same factor as CameraRig but scaled to pixels for the HTML layer
         // mouse is -1..1; multiply by ~18px for a subtle but matching drift
         const FACTOR = 18;
-        offset.current.x = THREE.MathUtils.lerp(offset.current.x, state.mouse.x * FACTOR, delta * 2.5);
-        offset.current.y = THREE.MathUtils.lerp(offset.current.y, -state.mouse.y * FACTOR, delta * 2.5);
+        offset.current.x = THREE.MathUtils.lerp(offset.current.x, globalMouse.x * FACTOR, delta * 2.5);
+        offset.current.y = THREE.MathUtils.lerp(offset.current.y, -globalMouse.y * FACTOR, delta * 2.5);
         if (wrapperRef.current) {
             wrapperRef.current.style.transform =
                 `translate(${offset.current.x}px, ${offset.current.y}px)`;
