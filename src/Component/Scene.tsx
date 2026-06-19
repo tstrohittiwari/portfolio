@@ -5,39 +5,39 @@ import * as THREE from "three";
 import Figure from "./Figure";
 import Background from "./Background";
 
-// ─── Module-level mouse tracker ──────────────────────────────────────────────
-// Updated by BOTH mousemove (desktop) and deviceorientation (mobile gyro).
-// Using window-level listeners means globalMouse stays correct even when the
-// pointer is over HTML overlay buttons (which swallow canvas pointer events).
+// ─── Input device detection ───────────────────────────────────────────────────
+// (pointer: coarse) = finger/stylus is the primary input → phone or tablet.
+// This correctly distinguishes phones from Windows laptops with touch screens:
+// a laptop's primary pointer is always "fine" (mouse), even if it has a touch panel.
+const isMobileDevice =
+    typeof window !== "undefined" &&
+    window.matchMedia("(pointer: coarse)").matches;
 
+// ─── Global mouse / gyro tracker ─────────────────────────────────────────────
 const globalMouse = { x: 0, y: 0 };
 
 if (typeof window !== "undefined") {
-    // ALWAYS register mousemove — safe on mobile (just never fires there).
-    // This fixes a bug where navigator.maxTouchPoints > 0 on Windows laptops
-    // made us skip mousemove entirely, keeping globalMouse at {0,0}.
-    window.addEventListener("pointermove", (e) => {
-        globalMouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
-        globalMouse.y = -((e.clientY / window.innerHeight) * 2 - 1);
-    }, { passive: true });
-
-    // Also handle gyroscope on real mobile devices (deviceorientation only fires
-    // on phones/tablets, so this won't interfere with desktop mouse tracking).
-    window.addEventListener("deviceorientation", (e) => {
-        // Only use gyro when there's no recent mouse movement (i.e., touch-only device)
-        if (Math.abs(globalMouse.x) < 0.02 && Math.abs(globalMouse.y) < 0.02) {
+    if (!isMobileDevice) {
+        // Desktop / laptop: track real pointer (mouse or stylus)
+        // pointermove fires from the window so it works even when hovering over
+        // HTML overlay buttons that swallow canvas pointer events.
+        window.addEventListener("pointermove", (e) => {
+            globalMouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
+            globalMouse.y = -((e.clientY / window.innerHeight) * 2 - 1);
+        }, { passive: true });
+    } else {
+        // Phone / tablet: use gyroscope tilt for subtle parallax
+        window.addEventListener("deviceorientation", (e) => {
             const gamma = Math.max(-30, Math.min(30, e.gamma ?? 0));
             const beta  = Math.max(-30, Math.min(30, (e.beta  ?? 0) - 30));
             globalMouse.x =  gamma / 30;
             globalMouse.y = -beta  / 30;
-        }
-    }, { passive: true });
+        }, { passive: true });
+    }
 }
 
-// isTouchDevice is still used only to tune parallax intensity
-const isTouchDevice =
-    typeof window !== "undefined" &&
-    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+// isMobileDevice also drives parallax intensity in CameraRig / HeroUI
+const isTouchDevice = isMobileDevice;
 
 // ─── R3F Components ────────────────────────────────────────────────────────────
 
