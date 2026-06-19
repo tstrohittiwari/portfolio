@@ -132,12 +132,15 @@ body,
   letter-spacing: 0.015em;
 }
 
-/* ─── Resume Button ─────────────────────────────────────── */
-.hero-resume {
+/* ─── Desktop bottom button row (Resume + Portfolio) ────── */
+.hero-bottom-btns {
   position: absolute;
   bottom: 6%;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
   pointer-events: all;
 }
 
@@ -200,7 +203,7 @@ body,
 
   /* Hide all desktop-only UI elements */
   .hero-socials,
-  .hero-resume,
+  .hero-bottom-btns,
   .hero-description {
     display: none;
   }
