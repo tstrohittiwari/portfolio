@@ -1,51 +1,50 @@
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useRef, useEffect, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useRef } from "react";
 import { Environment, Text, Html } from "@react-three/drei";
 import * as THREE from "three";
 import Figure from "./Figure";
 import Background from "./Background";
 
-// Global mouse / gyro tracker — normalised to -1..1
+// ─── Module-level mouse tracker ──────────────────────────────────────────────
+// Updated by BOTH mousemove (desktop) and deviceorientation (mobile gyro).
+// Using window-level listeners means globalMouse stays correct even when the
+// pointer is over HTML overlay buttons (which swallow canvas pointer events).
+
 const globalMouse = { x: 0, y: 0 };
-const isTouchDevice = typeof window !== "undefined" &&
-    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
 if (typeof window !== "undefined") {
-    if (!isTouchDevice) {
-        // Desktop: track real mouse
-        window.addEventListener("mousemove", (e) => {
-            globalMouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            globalMouse.y = -((e.clientY / window.innerHeight) * 2 - 1);
-        }, { passive: true });
-    } else {
-        // Mobile: use device orientation for subtle parallax
-        window.addEventListener("deviceorientation", (e) => {
-            // gamma: left/right tilt (-90..90), beta: front/back tilt (-180..180)
+    // ALWAYS register mousemove — safe on mobile (just never fires there).
+    // This fixes a bug where navigator.maxTouchPoints > 0 on Windows laptops
+    // made us skip mousemove entirely, keeping globalMouse at {0,0}.
+    window.addEventListener("pointermove", (e) => {
+        globalMouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
+        globalMouse.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    }, { passive: true });
+
+    // Also handle gyroscope on real mobile devices (deviceorientation only fires
+    // on phones/tablets, so this won't interfere with desktop mouse tracking).
+    window.addEventListener("deviceorientation", (e) => {
+        // Only use gyro when there's no recent mouse movement (i.e., touch-only device)
+        if (Math.abs(globalMouse.x) < 0.02 && Math.abs(globalMouse.y) < 0.02) {
             const gamma = Math.max(-30, Math.min(30, e.gamma ?? 0));
-            const beta  = Math.max(-30, Math.min(30, (e.beta ?? 0) - 30)); // offset 30° for natural hold angle
+            const beta  = Math.max(-30, Math.min(30, (e.beta  ?? 0) - 30));
             globalMouse.x =  gamma / 30;
             globalMouse.y = -beta  / 30;
-        }, { passive: true });
-    }
+        }
+    }, { passive: true });
 }
 
-// Detect screen width for responsive Three.js values
-function useIsMobile() {
-    const [mobile, setMobile] = useState(
-        typeof window !== "undefined" ? window.innerWidth < 768 : false
-    );
-    useEffect(() => {
-        const handler = () => setMobile(window.innerWidth < 768);
-        window.addEventListener("resize", handler, { passive: true });
-        return () => window.removeEventListener("resize", handler);
-    }, []);
-    return mobile;
-}
+// isTouchDevice is still used only to tune parallax intensity
+const isTouchDevice =
+    typeof window !== "undefined" &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+
+// ─── R3F Components ────────────────────────────────────────────────────────────
 
 function CameraRig() {
     useFrame((state, delta) => {
         const cam = state.camera;
-        const factor = isTouchDevice ? 0.25 : 0.4; // gentler on mobile
+        const factor = isTouchDevice ? 0.25 : 0.4;
         cam.position.x = THREE.MathUtils.lerp(cam.position.x, globalMouse.x * factor, delta * 2.5);
         cam.position.y = THREE.MathUtils.lerp(cam.position.y, globalMouse.y * factor, delta * 2.5);
         cam.lookAt(0, 0, 0);
@@ -53,33 +52,41 @@ function CameraRig() {
     return null;
 }
 
-// Name as a real 3D mesh — sits between Background and Figure
+// HeroName uses useThree().size — R3F's own reactive canvas size.
+// This re-renders HeroName when the canvas resizes WITHOUT needing useState,
+// so it never interferes with the R3F frameloop.
 function HeroName() {
-    const isMobile = useIsMobile();
+    const { size } = useThree(); // pixels, reactive to canvas resize
+    const isMobile = size.width < 768;
+    const fontSize   = isMobile ? 1.6  : Math.max(2.0, (size.width / 1920) * 4.5);
+    const posY       = isMobile ? 3.3  : 3;
+    const lineHeight = isMobile ? 0.85 : 1;
+    const text       = isMobile ? "ROHIT\nTIWARI" : "ROHIT TIWARI";
+
     return (
         <Text
-            position={isMobile ? [0, 3.3, -7] : [0, 3, -7]}
-            fontSize={isMobile ? 1.6 : 3.6}
+            position={[0, posY, -7]}
+            fontSize={fontSize}
             font="/fonts/ProximaNovaCond-Bold.ttf"
             color="#ffffff"
             anchorX="center"
             anchorY="middle"
             textAlign="center"
-            lineHeight={isMobile ? 0.85 : 1}
+            lineHeight={lineHeight}
         >
-            {isMobile ? "ROHIT\nTIWARI" : "ROHIT TIWARI"}
+            {text}
         </Text>
     );
 }
 
-// HTML overlay rendered inside the Canvas.
+// HTML overlay — parallax driven by useFrame writing directly to DOM style
 function HeroUI() {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const offset = useRef({ x: 0, y: 0 });
 
     useFrame((_, delta) => {
-        const FACTOR = isTouchDevice ? 8 : 18; // subtler drift on mobile
-        offset.current.x = THREE.MathUtils.lerp(offset.current.x, globalMouse.x * FACTOR, delta * 2.5);
+        const FACTOR = isTouchDevice ? 8 : 18;
+        offset.current.x = THREE.MathUtils.lerp(offset.current.x,  globalMouse.x * FACTOR, delta * 2.5);
         offset.current.y = THREE.MathUtils.lerp(offset.current.y, -globalMouse.y * FACTOR, delta * 2.5);
         if (wrapperRef.current) {
             wrapperRef.current.style.transform =
@@ -91,7 +98,7 @@ function HeroUI() {
         <Html fullscreen zIndexRange={[10, 20]}>
             <div ref={wrapperRef} style={{ position: "relative", width: "100%", height: "100%" }}>
 
-            {/* ── DESKTOP: Social icons left side ── */}
+            {/* ── DESKTOP: Social icons — left side ── */}
             <div className="hero-socials">
                 <a href="https://www.behance.net/tstrohittiwari" target="_blank" rel="noopener noreferrer" className="glass-card-btn" aria-label="Behance">
                     <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17">
@@ -113,14 +120,14 @@ function HeroUI() {
                 </a>
             </div>
 
-            {/* ── DESKTOP: Description right side ── */}
+            {/* ── DESKTOP: Description — right side ── */}
             <div className="hero-description">
                 <p>
                     A wayfinder with 1+ year of experience crafting digital experiences by navigating the space between user needs, business goals, and technology.
                 </p>
             </div>
 
-            {/* ── DESKTOP: Resume button bottom center ── */}
+            {/* ── DESKTOP: Resume button — bottom center ── */}
             <div className="hero-resume">
                 <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="resume-btn" aria-label="Download Resume">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
@@ -167,6 +174,7 @@ export default function Scene() {
         <Canvas
             camera={{ position: [0, 1.5, 6], fov: 45 }}
             gl={{ alpha: true, antialias: true }}
+            frameloop="always"
             style={{ width: "100%", height: "100%", display: "block" }}
         >
             <Environment preset="city" environmentIntensity={0.8} />
