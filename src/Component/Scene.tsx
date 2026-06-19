@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useRef } from "react";
+import { Suspense, useRef } from "react";
 import { Environment, Text, Html } from "@react-three/drei";
 import * as THREE from "three";
 import Figure from "./Figure";
@@ -177,6 +177,7 @@ function HeroUI() {
     );
 }
 
+
 export default function Scene() {
     return (
         <Canvas
@@ -185,18 +186,20 @@ export default function Scene() {
             frameloop="always"
             style={{ width: "100%", height: "100%", display: "block" }}
         >
-            <Environment preset="city" environmentIntensity={0.8} />
+            <Suspense fallback={null}>
+                <Environment preset="city" environmentIntensity={0.8} />
 
-            <ambientLight intensity={1.2} color="#ffffff" />
-            <directionalLight position={[2, 5, 4]} intensity={1.5} color="#ffffff" />
-            <spotLight position={[-4, 2, 4]} intensity={5} color="#ffffff" angle={0.8} penumbra={1} distance={20} />
-            <spotLight position={[5, 2, -4]} intensity={8} color="#ffebeb" angle={0.6} penumbra={1} distance={20} />
+                <ambientLight intensity={1.2} color="#ffffff" />
+                <directionalLight position={[2, 5, 4]} intensity={1.5} color="#ffffff" />
+                <spotLight position={[-4, 2, 4]} intensity={5} color="#ffffff" angle={0.8} penumbra={1} distance={20} />
+                <spotLight position={[5, 2, -4]} intensity={8} color="#ffebeb" angle={0.6} penumbra={1} distance={20} />
 
-            <Background />
-            <HeroName />
-            <Figure />
-            <HeroUI />
-            <CameraRig />
+                <Background />
+                <HeroName />
+                <Figure />
+                <HeroUI />
+                <CameraRig />
+            </Suspense>
         </Canvas>
     );
 }
