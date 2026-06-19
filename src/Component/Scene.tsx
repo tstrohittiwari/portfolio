@@ -127,14 +127,22 @@ function HeroUI() {
                 </p>
             </div>
 
-            {/* ── DESKTOP: Resume button — bottom center ── */}
-            <div className="hero-resume">
+            {/* ── DESKTOP: Resume + Portfolio buttons — bottom center ── */}
+            <div className="hero-bottom-btns">
                 <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="resume-btn" aria-label="Download Resume">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
                         <path d="M12 15V3m0 12l-4-4m4 4l4-4" />
                         <path d="M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17" />
                     </svg>
                     Resume
+                </a>
+                <a href="https://www.behance.net/tstrohittiwari" target="_blank" rel="noopener noreferrer" className="resume-btn portfolio-btn" aria-label="View Portfolio">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                    Portfolio
                 </a>
             </div>
 
