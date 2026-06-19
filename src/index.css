@@ -198,7 +198,7 @@ html, body, #root {
     align-items: center;
     gap: 10px;
     position: absolute;
-    bottom: 3%;
+    bottom: 6%;
     left: 24px;
     right: 24px;
     pointer-events: all;
