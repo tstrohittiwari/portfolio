@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Scene from "./Component/Scene";
 import Loader from "./Component/Loader";
 
